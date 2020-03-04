@@ -28,14 +28,14 @@ nz=2
 
 gen = nn.DataParallel(GaussianGenerator(nz, 100).cuda(), device_ids=(0,1))
 disc = nn.DataParallel(GaussianDiscriminator(100).cuda(), device_ids=(0,1))
-gen.load_state_dict(torch.load('models/gen'))
-disc.load_state_dict(torch.load('models/disc'))
+gen.load_state_dict(torch.load('models/badgen'))
+disc.load_state_dict(torch.load('models/baddisc'))
 
 # plot_gaussian_mix(1000)
 base_samples = gen(generate_noise(10000, nz)).cpu().detach().numpy()
 print(gaussian_metric(base_samples))
 print(jsd(base_samples))
-# plot_2d(base_samples, boundaries=False)
+plot_2d(base_samples, boundaries=False, title='Without Metropolis Hastings')
 # plot_2d(base_samples, boundaries=True)
 
 
@@ -63,7 +63,7 @@ cal_d = lambda input: torch.from_numpy(calibrator.predict(disc(input).cpu().deta
 
 # difference between calibrated and uncalibrated
 
-sample_size = 50000
+sample_size = 10000
 
 # mean, std = jsd_experiment(gen, cal_d, sample_size=sample_size)
 
@@ -96,10 +96,12 @@ with torch.no_grad():
     print(len(cal_samples))
     print(gaussian_metric(cal_samples))
     print(jsd(cal_samples))
-    plot_2d(cal_samples, boundaries=False)
+    plot_2d(cal_samples, boundaries=False, title='With Metropolis-Hastings')
 
-print(jsd_experiment(gen, cal_d, sample_size, mh=False))
-print(jsd_experiment(gen, cal_d, sample_size))
+
+#
+# print(jsd_experiment(gen, cal_d, sample_size, mh=False))
+# print(jsd_experiment(gen, cal_d, sample_size))
 
 # with torch.no_grad():
 #     jsd_store = []

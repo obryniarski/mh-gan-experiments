@@ -27,7 +27,7 @@ def plot_gaussian_mix(num_generated=64000, std=0.05, mu=[-2,-1,0,1,2]):
     plt.scatter(data[:, 0], data[:, 1], s=1.5, alpha=0.3)
     plt.show()
 
-def plot_2d(points, axis=None, boundaries=False, std=0.05, mu=[-2,-1,0,1,2]):
+def plot_2d(points, axis=None, boundaries=False, title=None, std=0.05, mu=[-2,-1,0,1,2]):
     if axis:
         axis.grid()
         axis.scatter(points[:, 0], points[:, 1], s=1.5, alpha=0.3)
@@ -35,6 +35,9 @@ def plot_2d(points, axis=None, boundaries=False, std=0.05, mu=[-2,-1,0,1,2]):
             for x in mu:
                 for y in mu:
                     axis.add_artist(plt.Circle((x, y), 4 * std, color='r', fill=False, linewidth=0.15))
+
+        if title:
+            axes.set_title(title)
 
     else:
         fig, ax = plt.subplots()
@@ -44,12 +47,17 @@ def plot_2d(points, axis=None, boundaries=False, std=0.05, mu=[-2,-1,0,1,2]):
             for x in mu:
                 for y in mu:
                     ax.add_artist(plt.Circle((x, y), 4 * std, color='r', fill=False, linewidth=0.15))
+
+        if title:
+            ax.set_title(title)
         plt.show()
 
 def generate_noise(num_generated, nz):
     # return torch.clamp(torch.randn((num_generated, nz), dtype=torch.float, device=0), min=0)
     # return torch.randn((num_generated, nz), dtype=torch.float, device=0)
     return torch.rand((num_generated, nz), dtype=torch.float, device=0) * 2 - 1
+    # return torch.rand((num_generated, nz), dtype=torch.float, device=0) * 4 - 2
+
 
 
 def z_calibration_stat(disc, data, y, numpy):

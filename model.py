@@ -45,7 +45,7 @@ class GaussianDiscriminator(nn.Module):
         return self.main(input)
 
 
-# copied from mh-gan released code https://github.com/obryniarski/metropolis-hastings-gans/blob/master/mhgan/classification.py
+# copied from mh-gan released code https://github.com/uber-research/metropolis-hastings-gans
 class Calibrator(object):
     def fit(self, y_pred, y_true):
         raise NotImplementedError

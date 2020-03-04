@@ -92,9 +92,9 @@ gaussian_data = gaussian_mix_generator(64000).to(0, torch.float)
 base_gen = nn.DataParallel(GaussianGenerator(2, 100).cuda(), device_ids=(0,1))
 base_disc = nn.DataParallel(GaussianDiscriminator(100).cuda(), device_ids=(0,1))
 
-# trained_gan, trained_disc = train_gan(base_gen, base_disc, gaussian_data, epochs=30, bs=2**8, lr=0.0005, display=True)
-trained_gan, trained_disc = train_gan(base_gen, base_disc, gaussian_data, epochs=100, bs=2**10, lr=0.005, display=True)
+trained_gan, trained_disc = train_gan(base_gen, base_disc, gaussian_data, epochs=30, bs=2**8, lr=0.0005, display=True)
+# trained_gan, trained_disc = train_gan(base_gen, base_disc, gaussian_data, epochs=100, bs=2**10, lr=0.005, display=True)
 
 
-torch.save(trained_gan.state_dict(), 'models/batchtestgen')
-torch.save(trained_disc.state_dict(), 'models/batchtestdisc')
+torch.save(trained_gan.state_dict(), 'models/badgen')
+torch.save(trained_disc.state_dict(), 'models/baddisc')
