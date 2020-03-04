@@ -11,7 +11,6 @@ from utils import *
 from model import *
 
 def accept(proposal_prob, current_prob, disc):
-    # print( (1/current_prob - 1) / (1/proposal_prob - 1))
     return np.fmin(1.0, (1/current_prob - 1) / (1/proposal_prob - 1))
 
 
@@ -21,9 +20,9 @@ def torch_accept(proposal_prob, current_prob):
 
 
 def metropolis_hastings(gen, disc, K, initial, real_initial=True):
-    print('um')
     changed = False
     x = initial
+
     for k in range(K):
         x_prime = gen(generate_noise(1, gen.module.nz))
         u = torch.rand(1, device=0)
@@ -41,18 +40,15 @@ def metropolis_hastings(gen, disc, K, initial, real_initial=True):
 
     if changed or not real_initial:
         return x
-    # restarts += 1
     return metropolis_hastings(gen, disc, K, gen(generate_noise(1, gen.module.nz)), False)
 
 def generate_mh_samples(num, gen, disc, K, initials):
     assert initials.shape[0] == num
     samples = []
-    # restarts = 0
 
     for i in tqdm(range(num)):
         sample = metropolis_hastings(gen, disc, K, initials[i].view(-1, 2))
         samples.append(sample)
-    # print('%i total restarts' % restarts)
 
 
     return torch.cat(samples, dim=0)
@@ -71,7 +67,6 @@ def vector_metropolis_hastings(gen, disc, K, initials, batch_size=100, real_init
             current_prob = disc(x).view(-1)
             proposal_prob = disc(x_prime).view(-1)
         except:
-            print('HIIII')
             current_prob = disc(x)[0]
             proposal_prob = disc(x_prime)[0]
         with np.errstate(divide='ignore'):

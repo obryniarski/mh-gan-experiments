@@ -12,7 +12,7 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 np.random.seed(seed)
 
-
+# train a normal gan, both generator and discriminator
 def train_gan(gen, disc, data, epochs, bs, lr, display=False):
 
     gen_opt = optim.Adam(gen.parameters(), lr=lr, betas=(0, 0.999))
@@ -87,14 +87,66 @@ def train_gan(gen, disc, data, epochs, bs, lr, display=False):
     return gen, disc
 
 
+# train discriminator of already trained gan so that it is optimal
+# the goal is to see if this discriminator is more likely to be p_data / (p_data + p_G)
+def full_train_discriminator(gen, disc, data, epochs, bs, lr):
+
+    disc_opt = optim.Adam(disc.parameters(), lr=lr, betas=(0.5, 0.999))
+
+    loss = nn.BCELoss()
+    fake_label = 0
+    real_label = 1
+    nz = gen.module.nz
+
+    data_gen = torch.utils.data.DataLoader(data, batch_size=bs, shuffle=True)
+
+    for epoch in range(epochs):
+        print('----- Epoch %i -----' % epoch)
+
+        for batch in data_gen:
+            batch.to(0)
+
+            # discriminator training
+            disc.zero_grad()
+            reals = batch
+            labels = torch.full((batch.shape[0], 1), real_label, device=0)
+            l1 = loss(disc(reals), labels)
+
+            noise = generate_noise(batch.shape[0], nz)
+            fakes = gen(noise)
+            labels = torch.full((batch.shape[0], 1), fake_label, device=0)
+            l2 = loss(disc(fakes), labels)
+            d_total_l = l1 + l2
+            d_total_l.backward()
+            disc_opt.step()
+
+        print('disc loss: %.3f' % (d_total_l))
+
+    return disc
+
+
+# full gan training here
+# gaussian_data = gaussian_mix_generator(64000).to(0, torch.float)
+#
+# base_gen = nn.DataParallel(GaussianGenerator(2, 100).cuda(), device_ids=(0,1))
+# base_disc = nn.DataParallel(GaussianDiscriminator(100).cuda(), device_ids=(0,1))
+#
+# trained_gan, trained_disc = train_gan(base_gen, base_disc, gaussian_data, epochs=30, bs=2**8, lr=0.0005, display=True)
+# # trained_gan, trained_disc = train_gan(base_gen, base_disc, gaussian_data, epochs=100, bs=2**10, lr=0.005, display=True)
+#
+#
+# torch.save(trained_gan.state_dict(), 'models/badgen')
+# torch.save(trained_disc.state_dict(), 'models/baddisc')
+
+# extra discriminator training here
 gaussian_data = gaussian_mix_generator(64000).to(0, torch.float)
 
-base_gen = nn.DataParallel(GaussianGenerator(2, 100).cuda(), device_ids=(0,1))
-base_disc = nn.DataParallel(GaussianDiscriminator(100).cuda(), device_ids=(0,1))
+gen = nn.DataParallel(GaussianGenerator(2, 100).cuda(), device_ids=(0,1))
+disc = nn.DataParallel(GaussianDiscriminator(100).cuda(), device_ids=(0,1))
+gen.load_state_dict(torch.load('models/gen'))
+disc.load_state_dict(torch.load('models/disc'))
 
-trained_gan, trained_disc = train_gan(base_gen, base_disc, gaussian_data, epochs=30, bs=2**8, lr=0.0005, display=True)
-# trained_gan, trained_disc = train_gan(base_gen, base_disc, gaussian_data, epochs=100, bs=2**10, lr=0.005, display=True)
+fully_trained_disc = full_train_discriminator(gen, disc, gaussian_data, epochs=150, bs=2**10, lr=0.003)
 
 
-torch.save(trained_gan.state_dict(), 'models/badgen')
-torch.save(trained_disc.state_dict(), 'models/baddisc')
+torch.save(fully_trained_disc.state_dict(), 'models/ft_disc')

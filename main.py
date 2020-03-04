@@ -28,14 +28,14 @@ nz=2
 
 gen = nn.DataParallel(GaussianGenerator(nz, 100).cuda(), device_ids=(0,1))
 disc = nn.DataParallel(GaussianDiscriminator(100).cuda(), device_ids=(0,1))
-gen.load_state_dict(torch.load('models/badgen'))
-disc.load_state_dict(torch.load('models/baddisc'))
+gen.load_state_dict(torch.load('models/gen'))
+disc.load_state_dict(torch.load('models/ft_disc'))
 
 # plot_gaussian_mix(1000)
 base_samples = gen(generate_noise(10000, nz)).cpu().detach().numpy()
 print(gaussian_metric(base_samples))
 print(jsd(base_samples))
-plot_2d(base_samples, boundaries=False, title='Without Metropolis Hastings')
+plot_2d(base_samples, boundaries=False, title='Without Metropolis-Hastings')
 # plot_2d(base_samples, boundaries=True)
 
 
@@ -134,6 +134,6 @@ with torch.no_grad():
 
 #
 #
-# plot_calibration_curve(gen, cal_d, 10000, numpy=True)
-# plot_calibration_curve(gen, disc, 10000, numpy=False)
+plot_calibration_curve(gen, cal_d, 10000, numpy=False)
+plot_calibration_curve(gen, disc, 10000, numpy=False)
 # print(test_calibration_gaussian(gen, cal_d, 1000, numpy=True))
