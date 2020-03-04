@@ -3,6 +3,8 @@
 Hi, I am using this repository to hold research/experimentation on Metropolis-Hastings
 Generative Adversarial Networks (https://arxiv.org/pdf/1811.11357.pdf).
 
+
+## Experiments 
 So far, I have been able to recreate results from the gaussian mixture experiment. Here is a particular example:
 
 <img src="images/bad-nomh.png" width="400" height="400"> <img src="images/bad-mh.png" width="400" height="400">
