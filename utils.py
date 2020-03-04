@@ -3,6 +3,7 @@ import torch
 import matplotlib.pyplot as plt
 from sklearn.calibration import calibration_curve
 
+
 def gaussian_mix_generator(num_generated=64000, std=0.05, mu=[-2, -1, 0, 1, 2]):
 
     # assert num_generated % len(mu) ** 2 == 0
@@ -146,6 +147,9 @@ def jsd(points, std=0.05, mu=[-2,-1,0,1,2]):
         KL_u += 0 if u_x == 0 else np.log(u_x / denom) * u_x
 
     return (1/2.) * (KL_s + KL_u)
+
+
+
 #
 # test = gaussian_mix_generator(10000).cpu().detach().numpy()
 # print(gaussian_metric(test))

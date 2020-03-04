@@ -15,9 +15,9 @@ np.random.seed(seed)
 
 def train_gan(gen, disc, data, epochs, bs, lr, display=False):
 
-    gen_opt = optim.Adam(gen.parameters(), lr=lr, betas=(0.5, 0.999))
+    gen_opt = optim.Adam(gen.parameters(), lr=lr, betas=(0, 0.999))
 
-    disc_opt = optim.Adam(disc.parameters(), lr=lr, betas=(0.5, 0.999))
+    disc_opt = optim.Adam(disc.parameters(), lr=lr, betas=(0, 0.999))
 
     loss = nn.BCELoss()
     fake_label = 0
@@ -26,6 +26,7 @@ def train_gan(gen, disc, data, epochs, bs, lr, display=False):
     if display:
         points_super = []
         display_epochs = list(np.linspace(0, epochs, 6, dtype=int, endpoint=False))
+        jsd_vals = []
         print(display_epochs)
 
 
@@ -60,8 +61,11 @@ def train_gan(gen, disc, data, epochs, bs, lr, display=False):
             g_total_l.backward()
             gen_opt.step()
 
-        if display and epoch in display_epochs:
-            points_super.append(gen(generate_noise(10000, nz)).cpu().detach().numpy())
+        if display:
+            p = gen(generate_noise(100, nz)).cpu().detach().numpy()
+            jsd_vals.append(jsd(p))
+            if epoch in display_epochs:
+                points_super.append(p)
 
 
         print('disc loss: %.3f' % (d_total_l))
@@ -74,6 +78,9 @@ def train_gan(gen, disc, data, epochs, bs, lr, display=False):
             axes[i // 3, i % 3].set_title('Epoch %i - %.4f' % (display_epochs[i], jsd(points_super[i])))
 
         plt.show()
+        plt.plot(np.array(range(1, epochs + 1)), jsd_vals)
+        plt.show()
+
 
 
 
@@ -85,7 +92,9 @@ gaussian_data = gaussian_mix_generator(64000).to(0, torch.float)
 base_gen = nn.DataParallel(GaussianGenerator(2, 100).cuda(), device_ids=(0,1))
 base_disc = nn.DataParallel(GaussianDiscriminator(100).cuda(), device_ids=(0,1))
 
-trained_gan, trained_disc = train_gan(base_gen, base_disc, gaussian_data, epochs=25, bs=256, lr=0.0005, display=True)
+# trained_gan, trained_disc = train_gan(base_gen, base_disc, gaussian_data, epochs=30, bs=2**8, lr=0.0005, display=True)
+trained_gan, trained_disc = train_gan(base_gen, base_disc, gaussian_data, epochs=100, bs=2**10, lr=0.005, display=True)
 
-torch.save(trained_gan.state_dict(), 'models/badgen')
-torch.save(trained_disc.state_dict(), 'models/baddisc')
+
+torch.save(trained_gan.state_dict(), 'models/batchtestgen')
+torch.save(trained_disc.state_dict(), 'models/batchtestdisc')
